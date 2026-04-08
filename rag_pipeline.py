@@ -66,7 +66,13 @@ def load_index(path='index_storage'):
     with open(os.path.join(path, 'meta.pkl'), 'rb') as f:
         data = pickle.load(f)
 
-    return index, data["docs"], data["tfidf_matrix"]
+    docs = data["docs"]
+    tfidf_matrix = data["tfidf_matrix"]
+
+    # Re-fit the TF-IDF vectorizer on the loaded documents so transform() works after load
+    tfidf.fit(docs)
+
+    return index, docs, tfidf_matrix
 
 # -----------------------------
 # RETRIEVAL
@@ -97,7 +103,7 @@ def retrieve_docs(query, docs, index, tfidf_matrix, k=3):
 # -----------------------------
 # RAG QUERY
 # -----------------------------
-def query_rag(query, docs, index, tfidf_matrix, model='qwen2.5:1.5b'):
+def query_rag(query, docs, index, tfidf_matrix, model='qwen2.5:3b-instruct', print_answer=True):
     timings = {}
 
     # Retrieval
@@ -130,17 +136,20 @@ Answer:
         keep_alive=300
     )
 
-    print("\n🤖 Answer:\n", end="")
+    if print_answer:
+        print("\n🤖 Answer:\n", end="")
     output = ""
 
     for chunk in stream:
         token = chunk['message']['content']
         output += token
-        print(token, end="", flush=True)
+        if print_answer:
+            print(token, end="", flush=True)
 
     timings["generation"] = time.perf_counter() - t0
     timings["total"] = sum(timings.values())
 
-    print("\n")
+    if print_answer:
+        print("\n")
 
     return output, retrieved_docs, timings
