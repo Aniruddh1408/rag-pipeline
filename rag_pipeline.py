@@ -1,3 +1,4 @@
+import hashlib
 import os
 import time
 import numpy as np
@@ -24,7 +25,7 @@ def chunk_text(text, chunk_size=200):
 def load_documents(folder='docs'):
     docs, filenames = [], []
 
-    for file in os.listdir(folder):
+    for file in sorted(os.listdir(folder)):
         if file.endswith('.txt'):
             with open(os.path.join(folder, file), 'r', encoding='utf-8') as f:
                 chunks = chunk_text(f.read())
@@ -33,6 +34,19 @@ def load_documents(folder='docs'):
                     filenames.append(file)
 
     return docs, filenames
+
+# -----------------------------
+# DOC SIGNATURE
+# -----------------------------
+def compute_docs_signature(folder='docs'):
+    entries = []
+    for file in sorted(os.listdir(folder)):
+        if file.endswith('.txt'):
+            path = os.path.join(folder, file)
+            stat = os.stat(path)
+            entries.append(f"{file}:{stat.st_mtime_ns}:{stat.st_size}")
+    digest = hashlib.sha256("\n".join(entries).encode('utf-8')).hexdigest()
+    return digest
 
 # -----------------------------
 # BUILD INDEX
@@ -50,7 +64,7 @@ def build_index(docs):
 # -----------------------------
 # SAVE / LOAD
 # -----------------------------
-def save_index(index, docs, tfidf_matrix, path='index_storage'):
+def save_index(index, docs, tfidf_matrix, path='index_storage', docs_sig=None):
     os.makedirs(path, exist_ok=True)
 
     faiss.write_index(index, os.path.join(path, 'index.faiss'))
@@ -58,7 +72,8 @@ def save_index(index, docs, tfidf_matrix, path='index_storage'):
     with open(os.path.join(path, 'meta.pkl'), 'wb') as f:
         pickle.dump({
             "docs": docs,
-            "tfidf_matrix": tfidf_matrix
+            "tfidf_matrix": tfidf_matrix,
+            "docs_sig": docs_sig
         }, f)
 
 def load_index(path='index_storage'):
@@ -97,7 +112,8 @@ def retrieve_docs(query, docs, index, tfidf_matrix, k=3):
     keyword_docs = [docs[i] for i in tfidf_idx]
     timings["tfidf"] = time.perf_counter() - t0
 
-    combined = list(set(semantic_docs + keyword_docs))[:k]
+    combined = semantic_docs + [doc for doc in keyword_docs if doc not in semantic_docs]
+    combined = combined[:k]
 
     return combined, timings
 
@@ -117,8 +133,8 @@ def query_rag(query, docs, index, tfidf_matrix, model='qwen2.5:3b-instruct', pri
 
     # Prompt
     t0 = time.perf_counter()
-    context = "\n".join(retrieved_docs[:2])  # use top 2 docs for context
-    context = context[:400]  # trim to fit prompt limits
+    retrieved_docs = retrieved_docs[:2]
+    context = "\n".join(retrieved_docs)
 
     prompt = f"""
 Answer ONLY using the documents below.
@@ -138,7 +154,7 @@ Answer:
         model=model,
         messages=[{"role": "user", "content": prompt}],
         stream=True,
-        options={"num_predict": 30, "temperature": 0.1},
+        options={"num_predict": 50, "temperature": 0.1},
         keep_alive=300
     )
 
