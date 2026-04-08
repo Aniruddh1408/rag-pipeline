@@ -117,7 +117,8 @@ def query_rag(query, docs, index, tfidf_matrix, model='qwen2.5:3b-instruct', pri
 
     # Prompt
     t0 = time.perf_counter()
-    context = "\n".join(retrieved_docs)
+    context = "\n".join(retrieved_docs[:2])  # use top 2 docs for context
+    context = context[:400]  # trim to fit prompt limits
 
     prompt = f"""
 Answer ONLY using the documents below.
@@ -137,7 +138,7 @@ Answer:
         model=model,
         messages=[{"role": "user", "content": prompt}],
         stream=True,
-        options={"num_predict": 60, "temperature": 0.1},
+        options={"num_predict": 30, "temperature": 0.1},
         keep_alive=300
     )
 
@@ -163,3 +164,26 @@ Answer:
     }
 
     return output, retrieved_docs, timings
+
+def preload_model(model='qwen2.5:3b-instruct', ready_flag=None):
+   # print("Preloading model into memory...")
+
+    try:
+        ollama.chat(
+            model=model,
+            messages=[{"role": "user", "content": "Hi"}],
+            stream=False,
+            options={
+                "num_predict": 1,   # generate almost nothing
+                "temperature": 0.0
+            },
+            keep_alive=300
+        )
+
+       # print("✅ Model preloaded successfully!\n")
+
+    except Exception as e:
+        print(f"❌ Preload failed: {e}")
+
+    if ready_flag is not None:
+        ready_flag["ready"] = True
