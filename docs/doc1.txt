@@ -1,0 +1,8 @@
+Python is a high-level, interpreted programming language known for its simplicity and readability. 
+It supports multiple programming paradigms including procedural, object-oriented, and functional programming. 
+Python is widely used in web development, data science, artificial intelligence, machine learning, and automation.
+
+Key features of Python include dynamic typing, automatic memory management, and a large standard library. 
+Popular libraries include NumPy for numerical computing, Pandas for data analysis, Matplotlib for visualization, and TensorFlow for machine learning.
+
+Python is considered beginner-friendly due to its clean syntax and ease of learning.

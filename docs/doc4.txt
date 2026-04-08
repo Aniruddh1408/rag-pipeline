@@ -1,0 +1,7 @@
+Transformers are deep learning models designed for handling sequential data, especially in natural language processing. 
+They use a mechanism called self-attention to understand relationships between words in a sentence.
+
+Large Language Models (LLMs) like GPT, BERT, and Qwen are based on transformer architecture. 
+These models are trained on massive datasets and can perform tasks such as text generation, summarization, translation, and question answering.
+
+Transformers have replaced older models like RNNs and LSTMs due to their ability to process data in parallel and capture long-range dependencies.

@@ -1,0 +1,8 @@
+Java is a class-based, object-oriented programming language designed to be platform-independent. 
+It runs on the Java Virtual Machine (JVM), which allows programs to run on any system without modification.
+
+Java is widely used in enterprise applications, Android development, and backend systems. 
+It follows the principle of "write once, run anywhere".
+
+Key features include strong type checking, garbage collection, multithreading, and high performance. 
+Popular frameworks include Spring Boot, Hibernate, and JavaFX.
