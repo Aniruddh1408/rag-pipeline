@@ -5,6 +5,7 @@ import faiss
 import pickle
 import ollama
 from sentence_transformers import SentenceTransformer
+cache = {}
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 embed_model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -104,6 +105,10 @@ def retrieve_docs(query, docs, index, tfidf_matrix, k=3):
 # RAG QUERY
 # -----------------------------
 def query_rag(query, docs, index, tfidf_matrix, model='qwen2.5:3b-instruct', print_answer=True):
+    normalized_query = query.strip().lower()
+
+    if normalized_query in cache:
+        return cache[normalized_query]["answer"], cache[normalized_query]["docs"], {"cached": True}
     timings = {}
 
     # Retrieval
@@ -151,5 +156,10 @@ Answer:
 
     if print_answer:
         print("\n")
+
+    cache[normalized_query] = {
+        "answer": output,
+        "docs": retrieved_docs
+    }
 
     return output, retrieved_docs, timings

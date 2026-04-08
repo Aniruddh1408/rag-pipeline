@@ -25,6 +25,11 @@ while True:
         break
 
     answer, retrieved_docs, timings = query_rag(q, docs, index, tfidf_matrix)
+    if "cached" in timings:
+       # print("\n⚡ Instant response (from cache)")
+        print(f"\n✅ Answer: {answer}")
+        print("-" * 50)
+        continue
 
     # LOG
     log_result(q, answer, retrieved_docs, timings)
