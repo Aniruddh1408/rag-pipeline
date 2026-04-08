@@ -1,0 +1,14 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environment
+venv/
+
+# RAG project specific
+index_storage/
+logs/
+
+# OS junk files
+.DS_Store
+Thumbs.db
